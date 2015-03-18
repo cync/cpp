@@ -20,7 +20,7 @@ int write2file (char *output, char *input, int size, bool mode) {
 	char buf[len+5];
 	snprintf(buf, len+5, "%s.tmp", output);
 	long pos;
-	cout << buf << " - " << endl;
+	
 
 	if (!mode) {
 	  	ofstream myfile (buf, ios::out | ios::app | ios::binary);
@@ -36,11 +36,10 @@ int write2file (char *output, char *input, int size, bool mode) {
 	    myfile.write(chunk, offset);
 	  	myfile.close();
   	} else {
-  		cout << "####" << endl;
+  		cout << "Recovering..." << endl;
   		ofstream myfile (buf, ios::out | ios::app | ios::binary);
   		*input += (size-offset);
-  		//seekp (0L, ios::beg);
-
+  		
   		printf("Chunk: %s Len:%d Bytes.\n", input, offset);
 
   		myfile.write (input, offset);
@@ -77,53 +76,26 @@ int operation(char *filename, bool mode) {
 	streampos size;
 	char *memblock;
 	long pos;
+	
 
-	if (mode == 0) {	
+	ifstream file(filename, ios::in | ios::binary | ios::ate);
+	if (file.is_open()) {
+		/* Get the final position of file*/
+		size = file.tellg(); 
+		/* Allocate memory to read the entire file */
+		memblock = new char[size];
+		/*  Set the position to the beginning */
+		file.seekg(0, ios::beg);
+		/* read all file into bufer */
+		file.read(memblock, size);
+		
+		write2file(filename, memblock, size, mode);
 
-		ifstream file(filename, ios::in | ios::binary | ios::ate);
-		if (file.is_open())
-		{
-			/* Get the final position of file*/
-			size = file.tellg(); 
-			/* Allocate memory to read the entire file */
-			memblock = new char[size];
-			/*  Set the position to the beginning */
-			file.seekg(0, ios::beg);
-			/* read all file into bufer */
-			file.read(memblock, size);
-			
-			write2file(filename, memblock, size, mode);
-
-			file.close();
-			cout << size  << " bytes has been read." << endl;
-			delete[] memblock;
-			  			
-		} else {
-			cout << "Unable to open file: " << filename;
-		}
+		file.close();
+		cout << size  << " bytes has been read." << endl;
+		delete[] memblock;
+		  			
 	} else {
-		cout << "Recovering file..."<< endl;
-		ifstream file(filename, ios::in | ios::binary | ios::ate);
-		if (file.is_open())
-		{	/*  Set the position to the end */
-			/* Get the final position of file*/
-			size = file.tellg(); 
-			/* Allocate memory to read the entire file */
-			memblock = new char[size];
-			/*  Set the position to the beginning */
-			file.seekg(0, ios::beg);
-			/* read all file into bufer */
-			file.read(memblock, size);
-			/* Moving pointer to get the last 8 bytes */
-			
-			write2file(filename, memblock, size, mode);
-
-			file.close();
-			cout << size  << " bytes has been read." << endl;
-			delete[] memblock;
-			  			
-		} else {
-			cout << "Unable to open file: " << filename;	
-		}
+		cout << "Unable to open file: " << filename;
 	}
 }
